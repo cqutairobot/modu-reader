@@ -1,0 +1,25 @@
+services:
+  reader:
+    build: .
+    image: modureader:local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${READER_BIND_PORT:-8000}:8000"
+    environment:
+      READER_PASSWORD: ${READER_PASSWORD:?Please set READER_PASSWORD in .env}
+      READER_DATA_DIR: /app/data
+      READER_STATIC_DIR: /app/frontend/dist
+      READER_COOKIE_SECURE: ${READER_COOKIE_SECURE:-true}
+      READER_TRUSTED_ORIGINS: ${READER_TRUSTED_ORIGINS:-}
+      READER_MAX_UPLOAD_BYTES: ${READER_MAX_UPLOAD_BYTES:-5242880}
+    volumes:
+      - reader_data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+volumes:
+  reader_data:
